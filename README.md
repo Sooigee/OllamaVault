@@ -2,7 +2,9 @@
 
 ## Overview
 
-OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secure interface between your clients and the Ollama AI model server. By enforcing strict API key validation and efficiently routing requests, OllamaKeyGuard acts as a gatekeeper to your AI models, ensuring that only authenticated users gain access. NOTE: THIS IS MADE FOR LINUX ON UBUNTU
+OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secure interface between your clients and the Ollama AI model server. By enforcing strict API key validation and efficiently routing requests, OllamaKeyGuard acts as a gatekeeper to your AI models, ensuring that only authenticated users gain access. 
+
+### NOTE: THIS IS MADE FOR LINUX ON UBUNTU
 
 ## Key Features
 
