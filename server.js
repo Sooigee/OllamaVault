@@ -12,10 +12,10 @@ const port = 3000;
 const apikeysFile = path.join(__dirname, 'apikeys.json');
 const ollamaServerUrl = 'http://localhost:11434';
 
-// Encryption settings (fixed key and IV for consistency)
+// Encryption settings
 const algorithm = 'aes-256-cbc';
 const secretKey = crypto.createHash('sha256').update('your_secret_key').digest();
-const iv = crypto.createHash('sha256').update('your_iv').digest().slice(0, 16); // Generate a 16-byte IV
+const iv = crypto.createHash('sha256').update('your_iv').digest().slice(0, 16); 
 
 // Middleware to parse JSON bodies and log requests
 app.use(bodyParser.json());
@@ -52,7 +52,6 @@ function saveApiKeys(apiKeys) {
     fs.writeFileSync(apikeysFile, encryptedData, 'utf8');
 }
 
-// Load existing API keys
 const apiKeys = loadApiKeys();
 
 // Function to generate a SHA-256 API key
@@ -124,7 +123,7 @@ rl.on('line', (input) => {
     handleCommand(command, args);
 });
 
-// Define routes to be rerouted to /api/tags on Ollama server
+// Define route endpoints to be rerouted to /api/tags on Ollama server
 const routes = [
     '/api/tags', '/api/models', '/v1/models', '/models', '/tags', 
     '/v1/tags', '/api/v1/models', '/v1/api/models'
@@ -180,7 +179,6 @@ app.post('/api/generate', async (req, res) => {
             responseType: 'stream',
         });
 
-        // Stream the response chunks from Ollama server directly to the client
         responseStream.data.pipe(res);
 
     } catch (error) {
