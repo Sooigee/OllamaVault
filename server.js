@@ -127,8 +127,10 @@ function updateRateLimit(maxRequests, windowMs) {
             max: maxRequests
         });
         app.use('/api/', requestRateLimit); 
+
         reloadServer();
         console.log(`Rate limit updated: ${maxRequests} requests per ${windowMs / 1000} seconds.`);
+        reloadServer();
     } else {
         console.log('Rate limiting is currently disabled.');
     }
@@ -146,6 +148,7 @@ function disableRateLimit() {
         );
         reloadServer();
         console.log('Rate limiting has been disabled.');
+        reloadServer();
     } else {
         console.log('Rate limiting is already disabled.');
     }
