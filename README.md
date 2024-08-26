@@ -27,7 +27,7 @@ cd OllamaKeyGuard
 ```
 2. Install Dependencies:
 ```
-npm install express axios morgan body-parser
+npm install express axios morgan body-parser nodemon
 ```
 3. Configure API Keys:
 
@@ -35,6 +35,37 @@ npm install express axios morgan body-parser
 
 4. Run the Server:
 ```
-node server.js
+npx nodemon server.js
 ```
    The server will start at http://localhost:3000, ready to manage and route your requests securely.
+
+### Commands
+
+
+#### addkey
+ Description: Generates a manual new API key and adds it to the list of authorized keys.
+ Use this command to allow access to the server with a new API key.
+
+#### generatekey
+Description: Creates a new secure API key adding it to the authorized list.
+Use this command to allow access to the server with a new API key.
+
+#### removekey <API_KEY>
+Description: Removes a specified API key from the list of authorized keys.
+This command is used to revoke access to the server for a specific key.
+
+#### listkeys
+Description: Displays all currently authorized API keys.
+Use this command to view which keys have access to the server.
+
+#### setratelimit <max_requests> <time_window_in_seconds>
+Description: Configures the rate limiting settings.
+You can set the maximum number of requests allowed in a specified time window.
+
+#### enableratelimit
+Description: Enables rate limiting based on the current configuration.
+If rate limiting is disabled, this command will activate it.
+
+#### disableratelimit
+Description: Disables rate limiting.
+Useful if you need to temporarily allow unlimited requests to the server.
