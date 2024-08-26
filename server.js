@@ -78,7 +78,8 @@ function loadSettings() {
 // Function to save settings to the JSON file
 function saveSettings(settings) {
     try {
-        fs.writeFileSync('/home/sooigee/coolscriptapistuff/settings.json', JSON.stringify(settings, null, 2));
+        const settingsFilePath = path.join(__dirname, 'settings.json');
+        fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
         console.log('Settings saved successfully.');
     } catch (err) {
         console.error('Error saving settings:', err.message);
