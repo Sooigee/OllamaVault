@@ -22,12 +22,12 @@ OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secur
 
 1. Clone the Repository:
 ```
-   git clone https://github.com/Sooigee/OllamaKeyGuard.git
-   cd OllamaKeyGuard
+git clone https://github.com/Sooigee/OllamaKeyGuard.git
+cd OllamaKeyGuard
 ```
 2. Install Dependencies:
 ```
-   npm install express axios morgan body-parser
+npm install express axios morgan body-parser
 ```
 3. Configure API Keys:
 
@@ -35,6 +35,6 @@ OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secur
 
 4. Run the Server:
 ```
-   node server.js
+node server.js
 ```
    The server will start at http://localhost:3000, ready to manage and route your requests securely.
