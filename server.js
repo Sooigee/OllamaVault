@@ -132,7 +132,6 @@ function updateRateLimit(maxRequests, windowMs) {
         });
         app.use('/api/', requestRateLimit); 
 
-        reloadServer();
         console.log(`Rate limit updated: ${maxRequests} requests per ${windowMs / 1000} seconds.`);
         reloadServer();
     } else {
@@ -150,7 +149,6 @@ function disableRateLimit() {
         app._router.stack = app._router.stack.filter(
             (layer) => !(layer.name === 'rateLimit')
         );
-        reloadServer();
         console.log('Rate limiting has been disabled.');
         reloadServer();
     } else {
