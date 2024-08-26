@@ -59,7 +59,7 @@ sudo chmod -R u+rw /path/to/folder
 
 #### addkey
  - Description: Generates a manual new API key and adds it to the list of authorized keys.
- Use this command to allow access to the server with a new API key.
+ Use this command to allow access to the server with a new API key. NOT SECURE.
 
 #### generatekey
 - Description: Creates a new secure API key adding it to the authorized list.
