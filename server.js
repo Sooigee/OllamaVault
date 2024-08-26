@@ -20,7 +20,6 @@ const algorithm = 'aes-256-cbc';
 const secretKey = crypto.createHash('sha256').update('your_secret_key').digest();
 const iv = crypto.createHash('sha256').update('your_iv').digest().slice(0, 16);
 
-// Middleware to parse JSON bodies and log requests
 app.use(bodyParser.json());
 app.use(morgan('combined'));
 
@@ -36,16 +35,6 @@ function decrypt(text) {
     const decipher = crypto.createDecipheriv(algorithm, secretKey, iv);
     const decrypted = Buffer.concat([decipher.update(Buffer.from(text, 'hex')), decipher.final()]);
     return decrypted.toString();
-}
-
-function ensureFilePermissions(filePath) {
-    try {
-        // Set the file's permissions to read and write for the owner
-        fs.chmodSync(filePath, '600');
-        console.log(`Permissions for ${filePath} have been set to 600 (read/write for owner).`);
-    } catch (err) {
-        console.error(`Failed to set permissions for ${filePath}:`, err.message);
-    }
 }
 
 // Function to load API keys from the encrypted JSON file
@@ -78,7 +67,6 @@ function loadSettings() {
         const settingsData = fs.readFileSync(settingsFile, 'utf8');
         return JSON.parse(settingsData);
     } else {
-        // Default settings
         return {
             rateLimitEnabled: true,
             maxRequests: 500,
@@ -111,25 +99,20 @@ if (settings.rateLimitEnabled) {
     app.use('/api/', requestRateLimit);
 }
 
-const { spawn } = require('child_process');
-
-
+// Function to reload script (the ratelimiting breaks if you dont idk why, also just used nodemons file change detect to restart lol)
 function reloadServer() {
-    console.log('Forcefully restarting server...');
+    console.log('Reloading server...');
     
-    // Path to the trigger file
     const reloadFilePath = path.join(__dirname, 'reload-trigger.txt');
     
-    // Update the file with the current timestamp to trigger Nodemon reload
     fs.writeFileSync(reloadFilePath, `Reload triggered at ${new Date().toISOString()}`);
     
     console.log('Server reload triggered.');
 }
 
 
-// Function to update rate limit dynamically
+// Function to update rate limit
 function updateRateLimit(maxRequests, windowMs) {
-   // ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
     settings.maxRequests = maxRequests;
     settings.windowMs = windowMs;
     saveSettings(settings);
@@ -139,12 +122,11 @@ function updateRateLimit(maxRequests, windowMs) {
     );
 
     if (settings.rateLimitEnabled) {
-        // Apply updated rate limiting middleware
         requestRateLimit = rateLimit({
             windowMs: windowMs,
             max: maxRequests
         });
-        app.use('/api/', requestRateLimit); // Reapply the middleware
+        app.use('/api/', requestRateLimit); 
         reloadServer();
         console.log(`Rate limit updated: ${maxRequests} requests per ${windowMs / 1000} seconds.`);
     } else {
@@ -155,7 +137,6 @@ function updateRateLimit(maxRequests, windowMs) {
 
 // Function to disable rate limiting
 function disableRateLimit() {
- //   ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
     if (settings.rateLimitEnabled) {
         settings.rateLimitEnabled = false;
         saveSettings(settings);
@@ -173,25 +154,19 @@ function disableRateLimit() {
 
 // Function to enable rate limiting
 function enableRateLimit() {
-  //  ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
     console.log('Attempting to enable rate limiting...');
     if (!settings.rateLimitEnabled) {
         console.log('Rate limiting is currently disabled. Enabling now...');
         settings.rateLimitEnabled = true;
         saveSettings(settings);
 
-        // Debug: Log current router stack before adding the middleware
-
-        // Create the rate limiting middleware
         const requestRateLimit = rateLimit({
             windowMs: settings.windowMs,
             max: settings.maxRequests
         });
 
-        // Add the rate limit middleware back to the stack
         app.use('/api/', requestRateLimit);
 
-        // Debug: Log current router stack after adding the middleware
         reloadServer();
         console.log('Rate limiting has been enabled.');
     } else {
@@ -257,7 +232,7 @@ function handleCommand(command, args) {
                 return;
             }
             const maxRequests = parseInt(args[0], 10);
-            const windowMs = parseInt(args[1], 10) * 1000; // convert seconds to milliseconds
+            const windowMs = parseInt(args[1], 10) * 1000; 
             if (isNaN(maxRequests) || isNaN(windowMs)) {
                 console.log('Error: Invalid rate limit parameters.');
                 return;
@@ -361,12 +336,10 @@ app.post('/api/generate', async (req, res) => {
 
 // Set timeouts for incoming requests and server responses to avoid resource exhaustion attacks
 app.use((req, res, next) => {
-    // Timeout for incoming request processing
     req.setTimeout(5000, () => {
         res.status(408).json({ error: 'Request Timeout' });
     });
 
-    // Timeout for server response
     res.setTimeout(5000, () => {
         res.status(503).json({ error: 'Service Unavailable: Server timeout' });
     });
