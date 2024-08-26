@@ -52,6 +52,8 @@ If you ever experience any problems such as file perms failing, run these comman
 sudo chown -R yourusername:yourusername /path/to/folder
 
 sudo chmod -R u+rw /path/to/folder
+
+Or when running in the server cli, run rs
 ```
 
 ### Commands
