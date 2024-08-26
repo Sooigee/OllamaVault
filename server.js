@@ -6,16 +6,19 @@ const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const rateLimit = require('express-rate-limit');
+
 
 const app = express();
 const port = 3000;
 const apikeysFile = path.join(__dirname, 'apikeys.json');
 const ollamaServerUrl = 'http://localhost:11434';
+const settingsFile = path.join(__dirname, 'settings.json');
 
 // Encryption settings
 const algorithm = 'aes-256-cbc';
 const secretKey = crypto.createHash('sha256').update('your_secret_key').digest();
-const iv = crypto.createHash('sha256').update('your_iv').digest().slice(0, 16); 
+const iv = crypto.createHash('sha256').update('your_iv').digest().slice(0, 16);
 
 // Middleware to parse JSON bodies and log requests
 app.use(bodyParser.json());
@@ -33,6 +36,16 @@ function decrypt(text) {
     const decipher = crypto.createDecipheriv(algorithm, secretKey, iv);
     const decrypted = Buffer.concat([decipher.update(Buffer.from(text, 'hex')), decipher.final()]);
     return decrypted.toString();
+}
+
+function ensureFilePermissions(filePath) {
+    try {
+        // Set the file's permissions to read and write for the owner
+        fs.chmodSync(filePath, '600');
+        console.log(`Permissions for ${filePath} have been set to 600 (read/write for owner).`);
+    } catch (err) {
+        console.error(`Failed to set permissions for ${filePath}:`, err.message);
+    }
 }
 
 // Function to load API keys from the encrypted JSON file
@@ -59,7 +72,138 @@ function generateApiKey() {
     return crypto.createHash('sha256').update(crypto.randomBytes(32)).digest('hex');
 }
 
-// CLI commands for managing API keys
+// Function to load settings from the JSON file
+function loadSettings() {
+    if (fs.existsSync(settingsFile)) {
+        const settingsData = fs.readFileSync(settingsFile, 'utf8');
+        return JSON.parse(settingsData);
+    } else {
+        // Default settings
+        return {
+            rateLimitEnabled: true,
+            maxRequests: 500,
+            windowMs: 5 * 60 * 1000 // 5 minutes
+        };
+    }
+}
+
+// Function to save settings to the JSON file
+function saveSettings(settings) {
+    try {
+        fs.writeFileSync('/home/sooigee/coolscriptapistuff/settings.json', JSON.stringify(settings, null, 2));
+        console.log('Settings saved successfully.');
+    } catch (err) {
+        console.error('Error saving settings:', err.message);
+    }
+}
+
+// Load initial settings
+let settings = loadSettings();
+
+// Set rate limit based on settings
+let requestRateLimit = rateLimit({
+    windowMs: settings.windowMs,
+    max: settings.maxRequests
+});
+
+// Apply rate limiting middleware if enabled
+if (settings.rateLimitEnabled) {
+    app.use('/api/', requestRateLimit);
+}
+
+const { spawn } = require('child_process');
+
+
+function reloadServer() {
+    console.log('Forcefully restarting server...');
+    
+    // Path to the trigger file
+    const reloadFilePath = path.join(__dirname, 'reload-trigger.txt');
+    
+    // Update the file with the current timestamp to trigger Nodemon reload
+    fs.writeFileSync(reloadFilePath, `Reload triggered at ${new Date().toISOString()}`);
+    
+    console.log('Server reload triggered.');
+}
+
+
+// Function to update rate limit dynamically
+function updateRateLimit(maxRequests, windowMs) {
+   // ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
+    settings.maxRequests = maxRequests;
+    settings.windowMs = windowMs;
+    saveSettings(settings);
+
+    app._router.stack = app._router.stack.filter(
+        (layer) => !(layer.name === 'rateLimit')
+    );
+
+    if (settings.rateLimitEnabled) {
+        // Apply updated rate limiting middleware
+        requestRateLimit = rateLimit({
+            windowMs: windowMs,
+            max: maxRequests
+        });
+        app.use('/api/', requestRateLimit); // Reapply the middleware
+        reloadServer();
+        console.log(`Rate limit updated: ${maxRequests} requests per ${windowMs / 1000} seconds.`);
+    } else {
+        console.log('Rate limiting is currently disabled.');
+    }
+}
+
+
+// Function to disable rate limiting
+function disableRateLimit() {
+ //   ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
+    if (settings.rateLimitEnabled) {
+        settings.rateLimitEnabled = false;
+        saveSettings(settings);
+
+        app._router.stack = app._router.stack.filter(
+            (layer) => !(layer.name === 'rateLimit')
+        );
+        reloadServer();
+        console.log('Rate limiting has been disabled.');
+    } else {
+        console.log('Rate limiting is already disabled.');
+    }
+}
+
+
+// Function to enable rate limiting
+function enableRateLimit() {
+  //  ensureFilePermissions('/home/sooigee/coolscriptapistuff/settings.json');
+    console.log('Attempting to enable rate limiting...');
+    if (!settings.rateLimitEnabled) {
+        console.log('Rate limiting is currently disabled. Enabling now...');
+        settings.rateLimitEnabled = true;
+        saveSettings(settings);
+
+        // Debug: Log current router stack before adding the middleware
+
+        // Create the rate limiting middleware
+        const requestRateLimit = rateLimit({
+            windowMs: settings.windowMs,
+            max: settings.maxRequests
+        });
+
+        // Add the rate limit middleware back to the stack
+        app.use('/api/', requestRateLimit);
+
+        // Debug: Log current router stack after adding the middleware
+        reloadServer();
+        console.log('Rate limiting has been enabled.');
+    } else {
+        console.log('Rate limiting is already enabled. No changes made.');
+    }
+}
+
+
+
+
+
+// CLI commands for managing API keys and rate limits
 function handleCommand(command, args) {
     switch (command) {
         case 'addkey':
@@ -76,7 +220,7 @@ function handleCommand(command, args) {
                 console.log(`API key added: ${keyToAdd}`);
             }
             break;
-        
+
         case 'generatekey':
             const newKey = generateApiKey();
             apiKeys.add(newKey);
@@ -107,8 +251,30 @@ function handleCommand(command, args) {
             }
             break;
 
+        case 'setratelimit':
+            if (args.length < 2) {
+                console.log('Error: You must provide both max requests and time window in seconds.');
+                return;
+            }
+            const maxRequests = parseInt(args[0], 10);
+            const windowMs = parseInt(args[1], 10) * 1000; // convert seconds to milliseconds
+            if (isNaN(maxRequests) || isNaN(windowMs)) {
+                console.log('Error: Invalid rate limit parameters.');
+                return;
+            }
+            updateRateLimit(maxRequests, windowMs);
+            break;
+
+        case 'disableratelimit':
+            disableRateLimit();
+            break;
+
+        case 'enableratelimit':
+            enableRateLimit();
+            break;
+
         default:
-            console.log('Unknown command. Available commands: addkey, generatekey, removekey, listkeys');
+            console.log('Unknown command. Available commands: addkey, generatekey, removekey, listkeys, setratelimit, enableratelimit, disableratelimit');
     }
 }
 
@@ -193,8 +359,23 @@ app.post('/api/generate', async (req, res) => {
     }
 });
 
+// Set timeouts for incoming requests and server responses to avoid resource exhaustion attacks
+app.use((req, res, next) => {
+    // Timeout for incoming request processing
+    req.setTimeout(5000, () => {
+        res.status(408).json({ error: 'Request Timeout' });
+    });
+
+    // Timeout for server response
+    res.setTimeout(5000, () => {
+        res.status(503).json({ error: 'Service Unavailable: Server timeout' });
+    });
+
+    next();
+});
+
 // Start the server
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`API server running on http://localhost:${port}`);
-    console.log('Enter commands below (addkey, generatekey, removekey, listkeys):');
+    console.log('Enter commands below (addkey, generatekey, removekey, listkeys, setratelimit <max_requests> <time_window_in_seconds>, enableratelimit, disableratelimit):');
 });
