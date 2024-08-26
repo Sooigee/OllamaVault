@@ -2,7 +2,7 @@
 
 ## Overview
 
-OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secure interface between your clients and the Ollama AI model server. By enforcing strict API key validation and efficiently routing requests, OllamaKeyGuard acts as a gatekeeper to your AI models, ensuring that only authenticated users gain access.
+OllamaKeyGuard is a powerful frontend proxy solution designed to provide a secure interface between your clients and the Ollama AI model server. By enforcing strict API key validation and efficiently routing requests, OllamaKeyGuard acts as a gatekeeper to your AI models, ensuring that only authenticated users gain access. NOTE: THIS IS MADE FOR LINUX ON UBUNTU
 
 ## Key Features
 
@@ -38,6 +38,14 @@ npm install express axios morgan body-parser nodemon
 npx nodemon server.js
 ```
    The server will start at http://localhost:3000, ready to manage and route your requests securely.
+
+4. Problems:
+If you ever experience any problems such as file perms failing, run these commands in that directory
+
+```
+sudo chown -R yourusername:yourusername /path/to/folder
+chmod -R u+rw /path/to/folder
+```
 
 ### Commands
 
