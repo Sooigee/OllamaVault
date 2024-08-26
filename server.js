@@ -107,8 +107,11 @@ function reloadServer() {
     
     fs.writeFileSync(reloadFilePath, `Reload triggered at ${new Date().toISOString()}`);
     
-    console.log('Server reload triggered.');
+    setTimeout(() => {
+        console.log('Server reload triggered.');
+    }, 500);  // Adjust delay as necessary
 }
+
 
 
 // Function to update rate limit
