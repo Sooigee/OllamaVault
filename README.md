@@ -51,6 +51,10 @@ Once the server is running, you can use the following commands in the CLI:
 - `ratelimitstatus`: Check current rate limit status
 - `exit`: Shut down the server
 
+## Config
+
+You can edit the py file under Configuration to change the port and llama URL.
+
 ## Making Requests
 
 To make requests to your Ollama server through OllamaVault, use the following URL format:
