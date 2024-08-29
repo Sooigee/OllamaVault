@@ -2,73 +2,66 @@
 
 ## Overview
 
-OllamaVault is a strong front-end proxy solution. It creates a safe connection between your clients and the Ollama AI model server. OllamaVault checks API keys and directs requests effectively. It acts as a gatekeeper for your AI models, making sure only authorized users can access them.
+OllamaVault is a secure API proxy server for Ollama, providing API key management and rate limiting functionality. It allows you to safely expose your Ollama server while maintaining control over access and usage.
 
-### NOTE: THIS IS MADE FOR LINUX ON UBUNTU
+## Note
 
-## Getting Started
+This application has been developed and tested on Linux systems. While it may work on other operating systems, its functionality on non-Linux platforms has not been verified. Use on other systems at your own discretion.
 
-1. Clone the Repository:
+## Features
+
+- API key management (add, remove, generate, list)
+- Key labeling for easy identification
+- Rate limiting with configurable settings
+- Encrypted storage of API keys and labels
+- Simple CLI for management operations
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/Sooigee/OllamaVault.git
+   cd OllamaVault
+   ```
+
+2. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+
+3. Run the server:
+   ```
+   python3 OllamaVault.py
+   ```
+
+## Usage
+
+Once the server is running, you can use the following commands in the CLI:
+
+- `addkey <key>`: Add a new API key
+- `generatekey`: Generate a new API key
+- `removekey <key>`: Remove an existing API key
+- `listkeys`: List all API keys
+- `labelkey <key> <label>`: Add a label to an API key
+- `removelabel <key>`: Remove the label from an API key
+- `setratelimit <max_requests> <time_window_in_seconds>`: Set rate limit
+- `enableratelimit`: Enable rate limiting
+- `disableratelimit`: Disable rate limiting
+- `ratelimitstatus`: Check current rate limit status
+- `exit`: Shut down the server
+
+## Making Requests
+
+To make requests to your Ollama server through OllamaVault, use the following URL format:
+
 ```
-git clone https://github.com/Sooigee/OllamaVault.git
-cd OllamaVault
+http://localhost:3000/api/generate
 ```
 
-2. Install Dependencies:
-```
-npm install express axios morgan body-parser nodemon
-```
-
-3. Run the Server:
-```
-npx nodemon server.js
-```
-   The server will start at http://localhost:3000, you can change this at ``` const ollamaServerUrl = 'http://localhost:11434'; ``` and ``` const port = 3000; ``` .
-
-
-4. Configure API Keys:
-
-   Set up your API keys using the provided command-line interface.  
-   
-
-5. Problems:
-If you ever experience any problems such as file perms failing, run these commands in that directory
+Include your API key in the Authorization header:
 
 ```
-sudo chown -R yourusername:yourusername /path/to/folder
-
-sudo chmod -R u+rw /path/to/folder
-
-Or when running in the server cli, run rs
+Authorization: Bearer YOUR_API_KEY
 ```
 
-### Commands
-
-
-#### addkey
- - Description: Generates a manual new API key and adds it to the list of authorized keys.
- Use this command to allow access to the server with a new API key. NOT SECURE.
-
-#### generatekey
-- Description: Creates a new secure API key adding it to the authorized list.
-Use this command to allow access to the server with a new API key.
-
-#### removekey <API_KEY>
-- Description: Removes a specified API key from the list of authorized keys.
-This command is used to revoke access to the server for a specific key.
-
-#### listkeys
-- Description: Displays all currently authorized API keys.
-Use this command to view which keys have access to the server.
-
-#### setratelimit <max_requests> <time_window_in_seconds>
-- Description: Configures the rate limiting settings.
-You can set the maximum number of requests allowed in a specified time window.
-
-#### enableratelimit
-- Description: Enables rate limiting based on the current configuration.
-If rate limiting is disabled, this command will activate it.
-
-#### disableratelimit
-- Description: Disables rate limiting.
-Useful if you need to temporarily allow unlimited requests to the server.
