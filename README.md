@@ -25,12 +25,22 @@ This application has been developed and tested on Linux systems. While it may wo
    ```
 
 2. Install the required dependencies:
+
+   If you haven't done so already, install python3   
+
+   ```
+   sudo apt update
+   sudo apt install python3
+   ```
+   Then, install requirements.
+   
    ```
    pip install -r requirements.txt
    ```
 
 
-3. Run the server:
+
+4. Run the server:
    ```
    python3 OllamaVault.py
    ```
