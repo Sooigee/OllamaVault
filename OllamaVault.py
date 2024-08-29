@@ -81,13 +81,12 @@ def get_machine_id():
         with open('/etc/machine-id', 'r') as f:
             return f.read().strip()
     except FileNotFoundError:
-        # Fallback to a generated UUID if machine-id is not available
         return str(uuid.uuid4())
 
 MACHINE_ID = get_machine_id()
 
 def derive_key(salt):
-    # Derive a key using scrypt KDF.
+ # Derive a key using scrypt KDF.
     kdf = Scrypt(
         salt=salt,
         length=32,
@@ -99,7 +98,7 @@ def derive_key(salt):
     return kdf.derive(MACHINE_ID.encode())
 
 def encrypt(data):
-    """Encrypt data using AES-GCM."""
+# Encrypt data using AES-GCM.
     salt = os.urandom(16)
     key = derive_key(salt)
     iv = os.urandom(12)
@@ -108,7 +107,6 @@ def encrypt(data):
         modes.GCM(iv),
         backend=default_backend()
     ).encryptor()
-    # Convert sets or other non-serializable types before encryption
     if isinstance(data, set):
         data = list(data)
     ciphertext = encryptor.update(json.dumps(data).encode()) + encryptor.finalize()
@@ -116,7 +114,7 @@ def encrypt(data):
     return base64.b64encode(encrypted).decode('utf-8')
 
 def decrypt(encrypted_data):
-    """Decrypt data using AES-GCM."""
+# Decrypt data using AES-GCM.
     try:
         encrypted = base64.b64decode(encrypted_data)
     except Exception as e:
@@ -145,11 +143,11 @@ key_labels = {}
 def save_api_keys():
     apikeys_file = 'apikeys.json'
     try:
-        encrypted_data = encrypt(list(api_keys))  # Convert set to list before encryption
+        encrypted_data = encrypt(list(api_keys))
         with open(apikeys_file, 'w') as f:
             f.write(encrypted_data)
         logger.info(f"API keys saved successfully. Number of keys: {len(api_keys)}")
-        load_api_keys()  # Immediately reload keys to confirm they are stored correctly
+        load_api_keys() 
     except Exception as e:
         logger.error(f"Error saving API keys: {e}")
 
@@ -175,7 +173,7 @@ def load_api_keys():
 def save_labels():
     labels_file = 'key_labels.json'
     try:
-        encrypted_data = encrypt(key_labels)  # Encrypting the dictionary before saving
+        encrypted_data = encrypt(key_labels) 
         with open(labels_file, 'w') as f:
             f.write(encrypted_data)
         logger.info("Key labels saved successfully.")
@@ -189,7 +187,7 @@ def load_labels():
         try:
             with open(labels_file, 'r') as f:
                 encrypted_data = f.read()
-            key_labels = decrypt(encrypted_data)  # Decrypting the data after loading
+            key_labels = decrypt(encrypted_data) 
         except Exception as e:
             logger.error(f"Error loading key labels: {e}")
     else:
@@ -236,7 +234,6 @@ rate_limiter.update_settings(
 )
 
 def load_api_keys_directly():
-# Directly load API keys from the file to ensure the latest keys are always used.
     apikeys_file = 'apikeys.json'
     if os.path.exists(apikeys_file):
         try:
@@ -281,7 +278,6 @@ def generate():
 
     provided_key = auth_header.split(' ')[1].strip()
 
-    # Directly load the latest keys from the file
     current_api_keys = load_api_keys_directly()
 
     if provided_key not in current_api_keys:
@@ -309,8 +305,8 @@ def handle_command(command, args):
                 logger.error('Error: Key already exists.')
             else:
                 api_keys.add(key_to_add)
-                save_api_keys()   # Save immediately
-                load_api_keys()   # Reload to reflect changes immediately
+                save_api_keys()  
+                load_api_keys()   
                 logger.info(f'API key added: {key_to_add}')
 
     elif command == 'removekey':
@@ -321,8 +317,8 @@ def handle_command(command, args):
             key_to_remove = args[0].strip()
             if key_to_remove in api_keys:
                 api_keys.remove(key_to_remove)
-                save_api_keys()   # Save immediately
-                load_api_keys()   # Reload to reflect changes immediately
+                save_api_keys()  
+                load_api_keys()  
                 logger.info(f'API key removed: {key_to_remove}')
             else:
                 logger.error('Error: Key not found.')
@@ -331,8 +327,8 @@ def handle_command(command, args):
         command_executed = True
         new_key = generate_api_key().strip()
         api_keys.add(new_key)
-        save_api_keys()   # Save immediately
-        load_api_keys()   # Reload to reflect changes immediately
+        save_api_keys()   
+        load_api_keys()   
         logger.info(f'Generated new API key: {new_key}')
 
     elif command == 'listkeys':
