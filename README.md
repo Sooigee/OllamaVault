@@ -31,6 +31,7 @@ This application has been developed and tested on Linux systems. While it may wo
    ```
    sudo apt update
    sudo apt install python3
+   sudo apt install python3-pip
    ```
    Then, install requirements.
    
