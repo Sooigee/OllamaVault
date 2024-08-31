@@ -486,7 +486,7 @@ def run_server():
 
 if __name__ == '__main__':
 
-    ollama_url = Config.OLLAMA_SERVER_URL  # Make sure this is defined in your Config class
+    ollama_url = Config.OLLAMA_SERVER_URL  
     if not check_ollama_running(ollama_url):
         logging.error("Ollama is not running or not accessible. Please ensure Ollama is installed or running before trying again.")
         os.kill(os.getpid(), signal.SIGKILL)
